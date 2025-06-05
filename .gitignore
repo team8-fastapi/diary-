@@ -201,8 +201,4 @@ scripts/*.pyc
 # macOS Finder metadata
 .DS_Store
 
-.gitmessage.txt
-
-.github/ISSUE_TEMPLATE
-
 # End of https://www.toptal.com/developers/gitignore/api/python
