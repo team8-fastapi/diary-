@@ -173,4 +173,36 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
+# Ignore environment-specific settings
+.env*
+!.env.example  # You can keep a template for others
+
+# Ignore Docker-related files that shouldn't be tracked
+docker-compose.override.yml
+
+# Ignore uvicorn log files (if you configure logging to files)
+*.log
+
+# Ignore aerich migration cache
+migrations/__pycache__/
+migrations/*.pyc
+migrations/.DS_Store
+
+# Ignore local script outputs (just in case)
+scripts/__pycache__/
+scripts/*.pyc
+
+# Ignore IDE/editor files (optional but helpful)
+.vscode/
+.idea/
+*.swp
+*~
+
+# macOS Finder metadata
+.DS_Store
+
+.gitmessage.txt
+
+.github/ISSUE_TEMPLATE
+
 # End of https://www.toptal.com/developers/gitignore/api/python
