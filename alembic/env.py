@@ -1,9 +1,13 @@
+import sys
 import os
-from logging.config import fileConfig
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from logging.config import fileConfig
+from app.models import user
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.core.database import Base  # Base.metadata 사용
+
 
 # Alembic Config 객체
 config = context.config
