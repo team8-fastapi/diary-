@@ -13,6 +13,12 @@ dependencies = [
     "uvicorn>=0.34.3",
 ]
 
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "ruff>=0.11.13",
+]
+
 # uv remove
 # uv tree
 # uv add ruff --dev

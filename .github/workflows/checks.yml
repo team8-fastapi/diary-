@@ -1,0 +1,87 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        # Github Secrets -> env, MySQL 데이터베이스 연결 설정
+        env:
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          # MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+
+        # Option: MySQL의 연결 상태 확인 (10초 단위로 5번 재시도 / 5초간 기다림)
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u${MYSQL_USER} -p${MYSQL_PASSWORD}"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies using uv
+        run: |
+          uv pip install .[dev]
+
+      # 코드 품질 검사
+      - name: Run ruff (Code quality check)
+        run: |
+          ruff check . --exit-zero 
+
+      - name: Run black (Code formatting)
+        run: |
+          black . --check
+
+      # MySQL 연결 대기
+      - name: Wait for MySQL
+        run: |
+          for i in {1..15}; do
+            if mysqladmin ping -h 127.0.0.1 -u"${{ secrets.MYSQL_USER }}" -p"${{ secrets.MYSQL_PASSWORD }}" --silent; then
+              echo "MySQL is up!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 4
+          done
+
+      # .env 환경 구성
+      - name: Set environment variables
+        run: |
+          echo "DATABASE_URL=mysql+pymysql://${{ secrets.MYSQL_USER }}:${{ secrets.MYSQL_PASSWORD }}@127.0.0.1:3306/${{ secrets.MYSQL_DATABASE }}" >> $GITHUB_ENV
+
+      # Alembic 마이그레이션 적용
+      - name: Run Alembic migrations
+        run: |
+          uv pip install alembic pymysql 
+          uv run alembic upgrade head 
+
+      # Pytest로 테스트 실행
+      - name: Run tests with pytest
+        run: |
+          uv pip install pytest
+          pytest
+
