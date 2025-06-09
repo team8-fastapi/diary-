@@ -1,0 +1,86 @@
+# .github/workflows/checks.yml
+
+name: Code Quality Checks
+
+# 트리거 이벤트 부분
+# 코드가 푸시되거나 풀 리퀘스트가 생성될 때 CI가 실행됩니다.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ci:
+    # 가장 최신버전의 ubuntu를 OS 환경으로 설정합니다.
+    runs-on: ubuntu-latest
+
+    # services 키워드를 사용하여 MySQL 서비스를 설정
+    services:
+      db:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p${{ secrets.MYSQL_ROOT_PASSWORD }}"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      # CI 환경에서 코드를 체크아웃합니다.
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # CI 환경에서 사용할 파이썬 버전을 지정합니다.
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # uv를 설치합니다.
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      # uv를 사용하여 의존성 패키지들을 설치합니다.
+      - name: Install dependencies using uv
+        run: |
+          uv pip install .[dev]
+
+      # ruff로 import 정렬 및 코드 스타일 검사
+      - name: Run ruff (Code quality check)
+        run: |
+          ruff check . --exit-zero  # 전체 검사
+
+      # black을 사용하여 PEP8 코드스타일을 준수했는지 체크합니다.
+      - name: Run black (Code formatting)
+        run: |
+          black . --check
+
+      # .env 환경 구성
+      - name: Set environment variables
+        run: |
+          echo "DATABASE_URL=mysql+pymysql://${{ secrets.MYSQL_USER }}:${{ secrets.MYSQL_PASSWORD }}@127.0.0.1:3306/${{ secrets.MYSQL_DATABASE }}?charset=utf8mb4" >> $GITHUB_ENV
+        env:
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+
+      # 정상적인 db 연결을 확인했으니 마이그레이션 수행
+      - name: Run Alembic migrations
+        run: |
+          alembic upgrade head
+
+      # 도전 미션
+      # FastAPI에서 pytest로 테스트를 실행합니다.
+      - name: Run tests with pytest
+        run: |
+          uv pip install pytest
+          pytest

@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: team8-db
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: team8_pw
+      MYSQL_DATABASE: team8
+      MYSQL_USER: team8_user
+      MYSQL_PASSWORD: team8_pw
+    ports:
+      - "3306:3306"
+    volumes:
+      - local_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fastapi-app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"  # FastAPI가 내부에서 8000 포트를 쓴다면
+    env_file:
+      - .env
+    working_dir: /app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+volumes:
+  local_db:
