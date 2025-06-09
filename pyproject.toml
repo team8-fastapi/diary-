@@ -19,6 +19,9 @@ dev = [
     "ruff>=0.11.13",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]  # 루트에서 검색
+include = ["app*"]
 # uv remove
 # uv tree
 # uv add ruff --dev
