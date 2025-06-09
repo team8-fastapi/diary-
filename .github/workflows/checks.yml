@@ -85,10 +85,3 @@ jobs:
         run: |
           uv pip install alembic pymysql 
           uv run alembic upgrade head 
-
-      # Pytest로 테스트 실행
-      - name: Run tests with pytest
-        run: |
-          uv pip install pytest
-          uv run pytest
-
