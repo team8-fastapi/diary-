@@ -3,9 +3,7 @@ name: Code Quality Checks
 on:
   push:
     branches:
-      - main
       - dongkyoung3
-      - dongkyoung
   pull_request:
 
 jobs:
