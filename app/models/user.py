@@ -3,7 +3,7 @@ from datetime import datetime
 from app.database import Base
 
 
-class User(Base):
+class User(Base, TimestampMixin):
     __tablename__ = "users"
 
     user_id = Column(Integer, primary_key=True, autoincrement=True)
