@@ -1,20 +1,22 @@
-from sqlalchemy import Column, String, Integer, DateTime, Boolean
-from sqlalchemy import Column, Integer, DateTime, Text, Enum, ForeignKey
-from datetime import datetime
 from app.database import Base
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    Text,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Enum,
+)
+from datetime import datetime
+
 
 class TimestampMixin:
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-class Diary(Base, TimestampMixin):
-    __tablename__ = "diary"
 
-    diary_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user.id"))
-    content = Column(Text)
-    emotion_summary = Column(Text)
-    mood = Column(Enum("기쁨", "슬픔", "분노", "피곤", "짜증", "무난", name="mood_enum"))
 class User(Base, TimestampMixin):
     __tablename__ = "users"
 
@@ -27,3 +29,28 @@ class User(Base, TimestampMixin):
     is_staff = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+
+
+class Diary(Base, TimestampMixin):
+    __tablename__ = "diary"
+
+    diary_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.user.id"))
+    content = Column(Text)
+    emotion_summary = Column(Text)
+    mood = Column(
+        Enum("기쁨", "슬픔", "분노", "피곤", "짜증", "무난", name="mood_enum")
+    )
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+    tags_id = Column(Integer, primary_key=True)
+    tags_name = Column(String(60, nullable=False))
+
+
+class Diarytag(Base):
+    __tablename__ = "diary_tags"
+    diary_tag_id = Column(Integer, primary_key=True)
+    diary_id = Column(Integer, ForeignKey("diary.diary_id"))
+    tags_id = Column(Integer, ForeignKey("tags.tags_id"))
