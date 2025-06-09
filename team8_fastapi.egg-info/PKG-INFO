@@ -13,4 +13,7 @@ Requires-Dist: uvicorn>=0.34.3
 Provides-Extra: dev
 Requires-Dist: black>=25.1.0; extra == "dev"
 Requires-Dist: ruff>=0.11.13; extra == "dev"
-Requires-Dist: pytest; extra == "dev"
+
+<img width="655" alt="image" src="https://github.com/user-attachments/assets/a732ccea-969c-4c9e-beff-85554fafaad5" />
+
+
