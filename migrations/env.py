@@ -4,6 +4,8 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 from alembic import context
+from app.database import Base
+
 
 # Alembic Config 객체
 config = context.config
@@ -27,8 +29,6 @@ config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # 실제 위치에 맞게 import 수정
-from app.database import Base
-from app.models.user import User
 
 target_metadata = Base.metadata
 
