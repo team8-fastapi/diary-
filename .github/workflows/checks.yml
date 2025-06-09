@@ -44,6 +44,12 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
+      - name: Create uv virtual environment
+        run: |
+          uv venv
+          echo "VIRTUAL_ENV=$(pwd)/.venv" >> $GITHUB_ENV # 가상 환경 경로를 환경 변수에 추가
+          echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH       # 가상 환경 bin 경로를 PATH에 추가
+
       - name: Install dependencies using uv
         run: |
           uv pip install .[dev]
