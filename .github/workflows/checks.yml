@@ -45,7 +45,7 @@ jobs:
 
       - name: Install dependencies using uv
         run: |
-          uv pip install .[dev]
+          uv pip install --system .[dev]    
 
       # 코드 품질 검사
       - name: Run ruff (Code quality check)
