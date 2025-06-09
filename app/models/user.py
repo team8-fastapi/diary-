@@ -15,5 +15,3 @@ class User(Base, TimestampMixin):
     is_staff = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
