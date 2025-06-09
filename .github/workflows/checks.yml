@@ -57,11 +57,11 @@ jobs:
       # 코드 품질 검사
       - name: Run ruff (Code quality check)
         run: |
-          ruff check . --exit-zero 
+          uv run ruff check . --exit-zero 
 
       - name: Run black (Code formatting)
         run: |
-          black . --check
+          uv run black . --check
 
       # MySQL 연결 대기
       - name: Wait for MySQL
@@ -90,5 +90,5 @@ jobs:
       - name: Run tests with pytest
         run: |
           uv pip install pytest
-          pytest
+          uv run pytest
 
