@@ -19,20 +19,19 @@ MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
 MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
 MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "mydatabase")
 
-SQLALCHEMY_DATABASE_URL = (
-    f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
-)
+SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
 
 config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
 
 # --- 모듈 경로 보장 (PYTHONPATH) ---
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # 실제 위치에 맞게 import 수정
 from app.database import Base
 from app.models.user import User
 
 target_metadata = Base.metadata
+
 
 def run_migrations_offline() -> None:
     """오프라인 모드: DB 연결 없이 SQL 생성"""
@@ -46,6 +45,7 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+
 def run_migrations_online() -> None:
     """온라인 모드: 실제 DB에 연결해 마이그레이션"""
     connectable = engine_from_config(
@@ -54,11 +54,10 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
             context.run_migrations()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: team8-fastapi
+Version: 0.1.0
+Summary: A FastAPI project for team8
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: alembic>=1.16.1
+Requires-Dist: cryptography>=45.0.3
+Requires-Dist: fastapi[standard]>=0.115.12
+Requires-Dist: pymysql>=1.1.1
+Requires-Dist: sqlalchemy>=2.0.41
+Requires-Dist: uvicorn>=0.34.3
+Provides-Extra: dev
+Requires-Dist: black>=25.1.0; extra == "dev"
+Requires-Dist: ruff>=0.11.13; extra == "dev"
+Requires-Dist: pytest; extra == "dev"

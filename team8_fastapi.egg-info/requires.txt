@@ -1,0 +1,11 @@
+alembic>=1.16.1
+cryptography>=45.0.3
+fastapi[standard]>=0.115.12
+pymysql>=1.1.1
+sqlalchemy>=2.0.41
+uvicorn>=0.34.3
+
+[dev]
+black>=25.1.0
+ruff>=0.11.13
+pytest
