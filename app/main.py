@@ -1,12 +1,6 @@
 from fastapi import FastAPI
+from app.api.v1.router import router as api_router
 
 app = FastAPI()
 
-
-@app.get("/")
-def main():
-    return "Hello from team8-fastapi!"
-
-
-if __name__ == "__main__":
-    main()
+app.include_router(api_router, prefix="/api/v1")
