@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - mukapi
   pull_request:
 
 jobs:
