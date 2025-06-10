@@ -1,12 +1,11 @@
 from fastapi import FastAPI
 
+from user.routers import router as user_router
+
 app = FastAPI()
 
-
-@app.get("/")
-def main():
-    return "Hello from team8-fastapi!"
+app.include_router(user_router)
 
 
-if __name__ == "__main__":
-    main()
+
+

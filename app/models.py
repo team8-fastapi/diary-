@@ -1,3 +1,4 @@
+# 추후 다시 새로운 패키지 디렉토리 models.py에 들어갈 것들
 from app.database import Base
 from sqlalchemy import (
     Column,
@@ -11,25 +12,9 @@ from sqlalchemy import (
 )
 from datetime import datetime
 
-
 class TimestampMixin:
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-
-class User(Base, TimestampMixin):
-    __tablename__ = "users"
-
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String(100), unique=True, nullable=False)
-    password = Column(String(255), nullable=False)
-    name = Column(String(20), nullable=False)
-    phone_number = Column(String(15), nullable=True)
-    last_login = Column(DateTime)
-    is_staff = Column(Boolean, default=False)
-    is_admin = Column(Boolean, default=False)
-    is_active = Column(Boolean, default=True)
-
 
 class Diary(Base, TimestampMixin):
     __tablename__ = "diary"
@@ -49,7 +34,7 @@ class Tag(Base):
     tags_name = Column(String(60), nullable=False)
 
 
-class Diarytag(Base):
+class DiaryTag(Base):
     __tablename__ = "diary_tags"
     diary_tag_id = Column(Integer, primary_key=True)
     diary_id = Column(Integer, ForeignKey("diary.diary_id"))
