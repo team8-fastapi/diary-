@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, field_validator
 import re
 
+
 class UserSignUpRequest(BaseModel):
     email: EmailStr
     full_name: str
@@ -21,6 +22,7 @@ class UserSignUpRequest(BaseModel):
             raise ValueError("Password must contain at least one special character")
         return value
 
+
 class UserLoginRequest(BaseModel):
     email: EmailStr
     password: str
@@ -37,4 +39,3 @@ class UserLoginRequest(BaseModel):
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
             raise ValueError("Password must contain at least one special character")
         return value
-

@@ -12,9 +12,11 @@ from sqlalchemy import (
 )
 from datetime import datetime
 
+
 class TimestampMixin:
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 class Diary(Base, TimestampMixin):
     __tablename__ = "diary"

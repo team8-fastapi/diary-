@@ -18,11 +18,11 @@ SessionFactory = sessionmaker(
     autocommit=False, autoflush=False, expire_on_commit=False, bind=engine
 )
 
-'''
+"""
 def get_session():
     session = SessionFactory()
     try:
         yield session
     finally:
         session.close()
-'''
+"""

@@ -2,14 +2,15 @@ from app.orm import Base
 from sqlalchemy import (
     Column,
     String,
-    Integer,
     Boolean,
+    Integer,
     DateTime,
     ForeignKey,
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
 
 def kstnow():
     return datetime.now(ZoneInfo("Asia/Seoul"))
@@ -35,6 +36,7 @@ class User(Base, TimestampMixin):
     is_active = Column(Boolean, default=True)
 
     refresh_tokens = relationship("RefreshToken", backref="user")
+
 
 # refresh 토큰 테이블 추가
 class RefreshToken(Base):
