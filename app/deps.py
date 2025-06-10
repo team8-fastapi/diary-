@@ -2,7 +2,10 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+
+from app.core.database import SessionFactory
 from app.core.security import decode_access_token
+
 
 # app/crud/user.py 에서 사용자 조회 함수를 임포트
 from app.crud.user import get_user_by_email  # 또는 get_user_by_id
@@ -14,7 +17,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")  # 로그인 엔드�
 
 
 def get_db():
-    # 데이터베이스 세션 생성 및 종료 로직
+    db = SessionFactory()
+    try:
+        yield db
+    finally:  # 데이터베이스 세션 생성 및 종료 로직
+        db.close()
     # (이는 app/core/database.py에 정의되어야 함)
     # yield SessionLocal()
     pass  # 실제 구현으로 대체
