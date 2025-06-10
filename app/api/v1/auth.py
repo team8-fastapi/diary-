@@ -50,11 +50,14 @@ async def login_for_access_token(user_in: UserLogin, db: Session = Depends(get_d
 async def read_current_user(current_user: UserResponse = Depends(get_current_user)):
     return current_user
 
+
 # 로그아웃 기능 추가
 @auth_router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
-    current_user: UserResponse = Depends(get_current_user), # 현재 로그인된 사용자 확인 (선택 사항)
-    response: Response = None # 응답 헤더 조작을 위해 Response 객체 주입
+    current_user: UserResponse = Depends(
+        get_current_user
+    ),  # 현재 로그인된 사용자 확인 (선택 사항)
+    response: Response = None,  # 응답 헤더 조작을 위해 Response 객체 주입
 ):
     """
     사용자를 로그아웃합니다.
@@ -79,6 +82,7 @@ async def logout(
     # response.delete_cookie("access_token") # 쿠키 이름이 'access_token'일 경우
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 
 # # (예시) 보호된 라우터
 # @router.get("/protected-route")
