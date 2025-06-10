@@ -5,6 +5,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.database import Base
+from app.models.user import User, Diary, Tag, Diarytag
 
 
 # Alembic Config 객체
