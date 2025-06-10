@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - eunjae2
   pull_request:
 
 jobs:
