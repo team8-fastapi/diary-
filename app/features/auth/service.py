@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.auth.hashing import verify_password
+from app.features.auth.hashing import verify_password
 from app.features.user.models import User
 from sqlalchemy.exc import NoResultFound
 

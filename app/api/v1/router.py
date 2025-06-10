@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.auth.router import auth_router
+from app.features.auth import auth_router
 
 router = APIRouter()
 
