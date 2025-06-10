@@ -23,7 +23,7 @@ def api_logout(
     token_refresh: TokenRefresh,
 ):
     logout(token_refresh.refresh_token)
-    return {"message": "로그아웃 하였습니다."}
+    return {"message": "로그아웃 하였습니다"}
 
 
 @router.post("/refresh", response_model=Token)
