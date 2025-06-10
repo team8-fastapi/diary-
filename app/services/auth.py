@@ -3,7 +3,7 @@ from rich import status
 from sqlalchemy.orm import Session
 
 from app.models.user import User
-from app.schemas.auth import UserCreate, Token, UserLogin, TokenRefresh
+from app.schemas.auth import UserCreate, Token, UserLogin, TokenRefresh, UserUpdate
 from app.core.security import (
     get_password_hash,
     verify_password,
@@ -89,3 +89,32 @@ def refresh_token(db: Session, token_refresh: TokenRefresh) -> Token:
     return Token(
         access_token=access_token, refresh_token=new_refresh_token, token_type="bearer"
     )
+
+
+def get_user_by_email(db: Session, email: str) -> User:
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="회원을 찾을 수 없습니다.")
+    return user
+
+
+def update_user(db: Session, email: str, user_update: UserUpdate) -> User:
+    user = get_user_by_email(db, email)
+
+    update_data = user_update.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        if field == "password":
+            setattr(user, "hashed_password", get_password_hash(value))
+        else:
+            setattr(user, field, value)
+
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def delete_user(db: Session, email: str):
+    user = get_user_by_email(db, email)
+    db.delete(user)
+    db.commit()

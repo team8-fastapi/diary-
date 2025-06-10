@@ -11,7 +11,7 @@ MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
 MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "mydatabase")
 
 # SQLAlchemy 연결 URL 구성
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:rootpassword@8000:8000/team8"
+SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(
