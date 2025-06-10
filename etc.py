@@ -1,140 +1,43 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
-
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-
-SECRET_KEY = "bd00333b8ad5edec41199fb37729719c746fa08f07e6a6cddfdd20b8d0e78ce4"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-db = {
-    "tim": {
-        "username": "tim",
-        "full_name": "Tim Ruscica",
-        "email": "tim@gmail.com",
-        "hashed_password": "",
-        "disabled": False,
-    }
-}
+# 추후 다시 새로운 패키지 디렉토리 models.py에 들어갈 것들
+from app.database import Base
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    Text,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Enum,
+)
+from datetime import datetime
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+class TimestampMixin:
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class TokenData(BaseModel):
-    username: str or None = None
+class Diary(Base, TimestampMixin):
+    __tablename__ = "diary"
 
-
-class User(BaseModel):
-    username: str
-    email: str or None = None
-    full_name: str or None = None
-    disabled: bool or None = None
-
-
-class UserInDB(User):
-    hashed_password: str
-
-
-pwd_context = CryptContext(schemas=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-app = FastAPI()
-
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-
-def get_user(db, username: str):
-    if username in db:
-        user_data = db[username]
-    return UserInDB(**user_data)
-
-
-def authenticate_user(db, username: str, password: str):
-    user = get_user(db, username)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-
-    return user
-
-
-def create_access_token(data: dict, expires_delta: timedelta or None = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + timedelta(minutes=expires_delta)
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    credential_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+    diary_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    content = Column(Text)
+    emotion_summary = Column(Text)
+    mood = Column(
+        Enum("기쁨", "슬픔", "분노", "피곤", "짜증", "무난", name="mood_enum")
     )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credential_exception
-
-        token_data = TokenData(username=username)
-    except JWTError:
-        raise credential_exception
-
-    user = get_user(db, username=token_data.username)
-    if user is None:
-        raise credential_exception
-
-    return user
 
 
-async def get_current_active_user(current_user: UserInDB = Depends(get_current_user)):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-
-    return current_user
-
-
-@app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=400,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+class Tag(Base):
+    __tablename__ = "tags"
+    tags_id = Column(Integer, primary_key=True)
+    tags_name = Column(String(60), nullable=False)
 
 
-@app.get("/user/me/", response_model=User)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
-
-
-@app.get("/user/me/items")
-async def read_own_items(current_user: User = Depends(get_current_active_user)):
-    return [{"item_id": 1, "owner": current_user}]
+class DiaryTag(Base):
+    __tablename__ = "diary_tags"
+    diary_tag_id = Column(Integer, primary_key=True)
+    diary_id = Column(Integer, ForeignKey("diary.diary_id"))
+    tags_id = Column(Integer, ForeignKey("tags.tags_id"))
