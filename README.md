@@ -6,4 +6,4 @@
 
 ![제목 없는 다이어그램-로그아웃 drawio](https://github.com/user-attachments/assets/37ed9503-3ee3-4e5e-ac30-92dc2944ae5d)
 
-![제목 없는 다이어그램-CRUD drawio](https://github.com/user-attachments/assets/0a4e6f16-10bb-48d5-a941-8e3b7084e4fb)
+![제목 없는 다이어그램-CRUD drawio (1)](https://github.com/user-attachments/assets/0f23e196-62fc-49ca-a944-beb6a27b5fd7)
