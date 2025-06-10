@@ -2,7 +2,12 @@ from select import select
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.features.auth.schemas import SignupRequest, SignupResponse, LoginRequest, TokenResponse
+from app.features.auth.schemas import (
+    SignupRequest,
+    SignupResponse,
+    LoginRequest,
+    TokenResponse,
+)
 from app.core.dependencies import get_db
 from app.features.user.models import User
 from app.features.auth.hashing import hash_password
