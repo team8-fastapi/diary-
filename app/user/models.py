@@ -1,4 +1,4 @@
-from app.orm import Base
+from orm import Base
 from sqlalchemy import (
     Column,
     String,
@@ -29,13 +29,13 @@ class User(Base, TimestampMixin):
     password = Column(String(255), nullable=False)
     full_name = Column(String(20), nullable=False)
     username = Column(String(20), nullable=False)
-    phone_number = Column(String(15), nullable=True)
+    phone_number = Column(String(20), nullable=True)
     last_login = Column(DateTime)
     is_staff = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
 
-    refresh_tokens = relationship("RefreshToken", backref="user")
+    refresh_tokens = relationship("RefreshToken", back_populates="user")
 
 
 # refresh 토큰 테이블 추가
