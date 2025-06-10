@@ -17,7 +17,7 @@ def user_sign_up_handler(body: UserSignUpRequest):
     session = SessionFactory()
     try:
         # 2) 이메일 중복 확인
-        if user := session.query(User).filter(User.email == body.email).first():
+        if session.query(User).filter(User.email == body.email).first():
             raise HTTPException(status_code=400, detail="Email already registered")
 
         # 2) 데이터를 user 테이블에 저장함.
