@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - JIUN
   pull_request:
 
 jobs:

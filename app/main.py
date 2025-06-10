@@ -1,12 +1,6 @@
 from fastapi import FastAPI
+from app.routers import auth
 
 app = FastAPI()
 
-
-@app.get("/")
-def main():
-    return "Hello from team8-fastapi!"
-
-
-if __name__ == "__main__":
-    main()
+app.include_router(auth.router)
