@@ -35,7 +35,7 @@ class Diary(Base, TimestampMixin):
     __tablename__ = "diary"
 
     diary_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user.id"))
+    user_id = Column(Integer, ForeignKey("users.user_id"))
     content = Column(Text)
     emotion_summary = Column(Text)
     mood = Column(
@@ -46,7 +46,7 @@ class Diary(Base, TimestampMixin):
 class Tag(Base):
     __tablename__ = "tags"
     tags_id = Column(Integer, primary_key=True)
-    tags_name = Column(String(60, nullable=False))
+    tags_name = Column(String(60), nullable=False)
 
 
 class Diarytag(Base):
