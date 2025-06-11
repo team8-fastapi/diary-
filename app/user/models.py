@@ -1,4 +1,4 @@
-from orm import Base
+from app.orm import Base
 from sqlalchemy import (
     Column,
     String,

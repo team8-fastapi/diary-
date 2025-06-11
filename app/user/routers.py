@@ -1,12 +1,14 @@
-from fastapi import APIRouter, HTTPException, Request
-from user.request import UserSignUpRequest, UserLoginRequest
-from user.authentication import hash_password, verify_password
-from user.models import User
-from database import SessionFactory
-from user.authorization import create_access_token, create_refresh_token
-from user.models import kstnow, RefreshToken
+from fastapi import APIRouter, HTTPException, Request, Depends
+from app.user.request import UserSignUpRequest, UserLoginRequest
+from app.user.authentication import hash_password, verify_password
+from app.user.models import User
+from app.database import SessionFactory
+from app.user.authorization import create_access_token, create_refresh_token
+from app.user.models import kstnow, RefreshToken
 from datetime import timedelta
+from fastapi.security import APIKeyHeader
 
+api_key_scheme = APIKeyHeader(name="Authorization")
 router = APIRouter(tags=["User"])
 
 
@@ -32,7 +34,6 @@ def user_sign_up_handler(body: UserSignUpRequest):
 
         # 3) 응답 반환
         return {
-            "user_id": new_user.id,
             "email": new_user.email,
             "full_name": new_user.full_name,
             "phone_number": new_user.phone_number,
@@ -88,11 +89,12 @@ def user_login_handler(body: UserLoginRequest):
 
 # 📌 로그아웃 API
 @router.post("/users/logout")
-def user_logout_handler(request: Request):
+def user_logout_handler(request: Request, authorization: str = Depends(api_key_scheme)):
     session = SessionFactory()
     try:
         # 클라이언트 토큰 무효화
         refresh_token = request.headers.get("X-Refresh-Token")
+
         if not refresh_token:
             raise HTTPException(status_code=400, detail="Refresh token required")
 
@@ -101,6 +103,7 @@ def user_logout_handler(request: Request):
             .filter_by(token=refresh_token, used=False)
             .first()
         )
+
         if not token_obj:
             raise HTTPException(
                 status_code=400, detail="Invalid or already logged out refresh token"

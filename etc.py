@@ -1,5 +1,6 @@
 # 추후 다시 새로운 패키지 디렉토리 models.py에 들어갈 것들
-from app.database import Base
+"""
+from app.orm import Base
 from sqlalchemy import (
     Column,
     String,
@@ -11,7 +12,6 @@ from sqlalchemy import (
     Enum,
 )
 from datetime import datetime
-
 
 class TimestampMixin:
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -41,3 +41,4 @@ class DiaryTag(Base):
     diary_tag_id = Column(Integer, primary_key=True)
     diary_id = Column(Integer, ForeignKey("diary.diary_id"))
     tags_id = Column(Integer, ForeignKey("tags.tags_id"))
+"""
