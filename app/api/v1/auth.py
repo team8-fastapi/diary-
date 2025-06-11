@@ -53,12 +53,7 @@ async def read_current_user(current_user: UserResponse = Depends(get_current_use
 
 # 로그아웃 기능 추가
 @auth_router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(
-    current_user: UserResponse = Depends(
-        get_current_user
-    ),  # 현재 로그인된 사용자 확인 (선택 사항)
-    response: Response = None,  # 응답 헤더 조작을 위해 Response 객체 주입
-):
+async def logout(response: Response):
     """
     사용자를 로그아웃합니다.
 
