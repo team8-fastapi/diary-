@@ -5,9 +5,7 @@ from sqlalchemy import (
     Boolean,
     Integer,
     DateTime,
-    ForeignKey,
 )
-from sqlalchemy.orm import relationship
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -34,17 +32,3 @@ class User(Base, TimestampMixin):
     is_staff = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
-
-    refresh_tokens = relationship("RefreshToken", back_populates="user")
-
-
-# refresh 토큰 테이블 추가
-class RefreshToken(Base):
-    __tablename__ = "refresh_tokens"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    token = Column(String(256), unique=True, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
-    used = Column(Boolean, default=False, nullable=False)
-
-    user = relationship("User", back_populates="refresh_tokens")

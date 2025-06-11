@@ -1,14 +1,11 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException
 from app.user.request import UserSignUpRequest, UserLoginRequest
 from app.user.authentication import hash_password, verify_password
 from app.user.models import User
 from app.database import SessionFactory
-from app.user.authorization import create_access_token, create_refresh_token
-from app.user.models import kstnow, RefreshToken
+from app.user.authorization import create_access_token
 from datetime import timedelta
-from fastapi.security import APIKeyHeader
 
-api_key_scheme = APIKeyHeader(name="Authorization")
 router = APIRouter(tags=["User"])
 
 
@@ -62,60 +59,12 @@ def user_login_handler(body: UserLoginRequest):
         access_token = create_access_token(
             data={"sub": str(user.id)}, expires_delta=timedelta(minutes=30)
         )
-        refresh_token = create_refresh_token(
-            data={"sub": str(user.id)}, expires_delta=timedelta(days=7)
-        )
-
-        expires_at = kstnow() + timedelta(days=7)
-
-        # 5) DB에 클라이언트 토큰 저장
-        session.add(
-            RefreshToken(
-                user_id=user.id, token=refresh_token, expires_at=expires_at, used=False
-            )
-        )
-        session.commit()
 
         # 6) 응답 반환
         return {
             "access_token": access_token,
-            "refresh_token": refresh_token,
             "token_type": "bearer",
         }
 
     finally:
         session.close()
-
-
-# 📌 로그아웃 API
-@router.post("/users/logout")
-def user_logout_handler(request: Request, authorization: str = Depends(api_key_scheme)):
-    session = SessionFactory()
-    try:
-        # 클라이언트 토큰 무효화
-        refresh_token = request.headers.get("X-Refresh-Token")
-
-        if not refresh_token:
-            raise HTTPException(status_code=400, detail="Refresh token required")
-
-        token_obj = (
-            session.query(RefreshToken)
-            .filter_by(token=refresh_token, used=False)
-            .first()
-        )
-
-        if not token_obj:
-            raise HTTPException(
-                status_code=400, detail="Invalid or already logged out refresh token"
-            )
-
-        token_obj.used = True
-        session.commit()
-
-        return {"detail": "Successfully logged out"}
-
-    finally:
-        session.close()
-
-
-# 토큰 재발급시 로직
