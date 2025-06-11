@@ -19,7 +19,9 @@ auth_router = APIRouter()
 
 
 @auth_router.post("/signup", response_model=SignupResponse)
-async def signup(user_data: SignupRequest, db: AsyncSession = Depends(get_db)) -> SignupResponse:
+async def signup(
+    user_data: SignupRequest, db: AsyncSession = Depends(get_db)
+) -> SignupResponse:
     # 중복 이메일 확인
     result = await db.execute(select(User).filter(User.email == user_data.email))
     existing_user = result.scalars().first()
@@ -42,7 +44,9 @@ async def signup(user_data: SignupRequest, db: AsyncSession = Depends(get_db)) -
 
 
 @auth_router.post("/login", response_model=TokenResponse)
-async def login(login_data: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
+async def login(
+    login_data: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)
+):
     user = await authenticate_user(db, login_data.email, login_data.password)
     if not user:
         raise HTTPException(
@@ -65,4 +69,3 @@ async def login(login_data: LoginRequest, response: Response, db: AsyncSession =
     return TokenResponse(
         access_token=access_token, refresh_token="", token_type="bearer"
     )
-
