@@ -1,4 +1,4 @@
-from select import select
+from sqlalchemy import select
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +20,7 @@ auth_router = APIRouter()
 
 @auth_router.post("/signup", response_model=SignupResponse)
 async def signup(user_data: SignupRequest, db: AsyncSession = Depends(get_db)):
+    print(signup)
     # 중복 이메일 확인
     result = await db.execute(select(User).filter(User.email == user_data.email))
     existing_user = result.scalars().first()
