@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 
 # 필요한 스키마, CRUD, 보안 관련 함수들 임포트
-from app.schemas.user import UserCreate, UserResponse
-from app.crud.user import create_user, get_user_by_email
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
+from app.crud.user import create_user, get_user_by_email, update_user, delete_user
 from app.core.security import verify_password, get_password_hash, create_access_token
 from app.core.config import settings
 from app.deps import get_db, get_current_user
@@ -68,6 +68,55 @@ async def login_for_access_token(
 @auth_router.get("/me", response_model=UserResponse)
 async def read_current_user(current_user: UserResponse = Depends(get_current_user)):
     return current_user
+
+
+@auth_router.patch("/me", response_model=UserResponse)
+async def update_current_user(
+    user_in: UserUpdate,
+    current_user: UserResponse = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    db_user_to_update = get_user_by_email(db, email=current_user.email)
+    if not db_user_to_update:
+        raise HTTPException(status_code=404, detail="User not found")
+    updated_user = update_user(db=db, db_user=db_user_to_update, user_in=user_in)
+
+    return updated_user
+
+
+@auth_router.delete("/me")  # status_code=status.HTTP_204_NO_CONTENT 제거
+async def delete_current_user(
+    response: Response,  # 응답 쿠키 삭제를 위해 Response 객체 주입
+    current_user: UserResponse = Depends(get_current_user),  # 현재 로그인된 사용자 확인
+    db: Session = Depends(get_db),  # DB 세션 주입
+):
+    """
+    현재 로그인된 사용자의 계정을 삭제합니다.
+    """
+    user_deleted = delete_user(
+        db, user_id=current_user.user_id
+    )  # user_id는 Pydantic UserResponse에서 가져옴
+
+    if not user_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found or could not be deleted",
+        )
+
+    # 계정 삭제 성공 후, 사용자 세션(쿠키)도 삭제
+    response.delete_cookie(
+        key=ACCESS_TOKEN_COOKIE_NAME,
+        httponly=True,
+        samesite="Lax",
+        path="/",
+        domain="127.0.0.1",
+        # secure=True # 프로덕션 환경에서 HTTPS를 사용한다면 이 줄의 주석을 해제하세요.
+    )
+    # Refresh Token도 사용한다면 여기서 삭제 로직 추가 (블랙리스트 포함)
+    # response.delete_cookie(key=REFRESH_TOKEN_COOKIE_NAME, ...)
+
+    # 204 No Content 대신 "Deleted successfully" 메시지 반환
+    return {"message": "Deleted successfully"}
 
 
 @auth_router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

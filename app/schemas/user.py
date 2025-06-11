@@ -12,8 +12,9 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = Field(None, example="<NAME>")
+    name: Optional[str] = Field(None, min_length=2, example="<NAME>")
     phone_number: Optional[str] = Field(None, example="010-1234-5678")
+    password: Optional[str] = Field(None, min_length=8, example="password123!")
 
 
 class UserResponse(BaseModel):

@@ -5,7 +5,7 @@ from sqlalchemy import select, update, delete
 from datetime import datetime
 from typing import Optional
 
-from app.models.user import User as UserORM  # SQLAlchemy ORM 모델 임포트
+from app.models.user import User as UserORM, User  # SQLAlchemy ORM 모델 임포트
 from app.schemas.user import UserUpdate  # Pydantic 스키마 임포트
 from app.core.security import get_password_hash  # 비밀번호 해싱 유틸리티 임포트
 
@@ -51,36 +51,30 @@ def create_user(db: Session, user_data: dict) -> UserORM:
     return db_user
 
 
-def update_user(
-    db: Session, user_id: int, user_update: UserUpdate
-) -> Optional[UserORM]:
+def update_user(db: Session, db_user: User, user_in: UserUpdate) -> User:
     """
-    특정 사용자 정보를 업데이트합니다.
+    기존 사용자 정보를 업데이트합니다.
+    db_user: 데이터베이스에서 조회된 사용자 ORM 객체
+    user_in: 클라이언트로부터 받은 업데이트될 데이터 (Pydantic UserUpdate 모델)
     """
-    # 먼저 사용자 존재 여부 확인
-    db_user = get_user(db, user_id)
-    if not db_user:
-        return None
+    # Pydantic v2: .model_dump(exclude_unset=True) 사용 (기본값)
+    # Pydantic v1: .dict(exclude_unset=True) 사용
+    # 현재 auth.py에서 .dict()를 사용하므로 여기도 .dict()로 통일
+    update_data = user_in.dict(exclude_unset=True)
+    # 만약 Pydantic v2를 사용한다면:
+    # update_data = user_in.model_dump(exclude_unset=True)
 
-    # Pydantic 모델의 업데이트 데이터를 딕셔너리로 변환하고 None이 아닌 값만 필터링
-    update_data = user_update.model_dump(exclude_unset=True)  # Pydantic v2
-    # update_data = user_update.dict(exclude_unset=True) # Pydantic v1
-
-    # 비밀번호가 있다면 해싱하여 업데이트 데이터에 반영
+    # 비밀번호가 포함되어 있다면 해싱하여 업데이트
     if "password" in update_data and update_data["password"]:
         update_data["password"] = get_password_hash(update_data["password"])
 
-    # SQLAlchemy 2.0 스타일로 UPDATE 쿼리 실행
-    stmt = (
-        update(UserORM)
-        .where(UserORM.user_id == user_id)
-        .values(**update_data, updated_at=datetime.utcnow())  # updated_at 자동 업데이트
-    )
-    db.execute(stmt)
-    db.commit()
+    # User ORM 객체의 속성을 업데이트합니다.
+    for key, value in update_data.items():
+        setattr(db_user, key, value)
 
-    # 업데이트된 사용자 객체를 다시 조회하여 반환
-    db.refresh(db_user)
+    db.add(db_user)  # 변경 사항을 세션에 추가
+    db.commit()  # 데이터베이스에 커밋
+    db.refresh(db_user)  # 최신 상태로 새로고침
     return db_user
 
 
