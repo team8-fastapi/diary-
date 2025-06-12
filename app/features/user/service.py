@@ -2,6 +2,7 @@ from fastapi import HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.features.auth.authentication import get_password_hash
 from app.features.auth.repository import get_user_by_email
 from app.features.user.repository import update_user, delete_user
 from app.features.user.schemas import UserResponse, UserUpdate
@@ -17,6 +18,8 @@ def update_me(user_in: UserUpdate, current_user: UserResponse, db: Session):
     user = get_user_by_email(db, current_user.email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    if user_in.password:
+        user_in.password = get_password_hash(user_in.password)
     return update_user(db, user, user_in)
 
 
