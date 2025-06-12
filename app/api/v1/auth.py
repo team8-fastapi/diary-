@@ -67,6 +67,9 @@ async def login_for_access_token(
 
 @auth_router.get("/me", response_model=UserResponse)
 async def read_current_user(current_user: UserResponse = Depends(get_current_user)):
+    """
+    로그인 유저 정보 조회
+    """
     return current_user
 
 
@@ -76,6 +79,9 @@ async def update_current_user(
     current_user: UserResponse = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """
+    로그인한 유저 정보 수정 기능
+    """
     db_user_to_update = get_user_by_email(db, email=current_user.email)
     if not db_user_to_update:
         raise HTTPException(status_code=404, detail="User not found")
