@@ -1,3 +1,4 @@
+# app/models/user.py
 from app.core.database import Base
 from sqlalchemy import (
     Column,

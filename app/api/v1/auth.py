@@ -68,7 +68,7 @@ async def login_for_access_token(
 @auth_router.get("/me", response_model=UserResponse)
 async def read_current_user(current_user: UserResponse = Depends(get_current_user)):
     """
-    로그인 유저 정보 조회
+    로그인된 유저 정보 조회
     """
     return current_user
 

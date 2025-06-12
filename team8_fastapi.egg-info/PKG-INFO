@@ -12,6 +12,7 @@ Requires-Dist: fastapi[standard]>=0.115.12
 Requires-Dist: passlib[bcrypt]>=1.7.4
 Requires-Dist: pydantic-settings>=2.9.1
 Requires-Dist: pymysql>=1.1.1
+Requires-Dist: python-dotenv>=1.1.0
 Requires-Dist: python-jose[cryptography]>=3.5.0
 Requires-Dist: python-multipart>=0.0.20
 Requires-Dist: ruff>=0.11.13
