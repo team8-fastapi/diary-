@@ -1,19 +1,13 @@
-# app/deps.py
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
+
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
+
 from app.core.config import settings
-
-
 from app.core.database import SessionFactory
-
-
-from app.crud.user import get_user_by_email
-from app.schemas.user import UserResponse
-
-# JWT를 저장할 쿠키의 이름 (auth.py와 동일하게 유지)
-ACCESS_TOKEN_COOKIE_NAME = "access_token"
+from app.features.user.service import get_user_by_email
+from app.features.user.schemas import UserResponse
 
 # OAuth2PasswordBearer는 Swagger UI의 인증 설정에 사용됩니다.
 # 실제 토큰 추출은 get_current_user에서 쿠키를 통해 직접 수행합니다.
@@ -31,7 +25,7 @@ def get_db():
 async def get_current_user(
     request: Request, db: Session = Depends(get_db)
 ) -> UserResponse:
-    token = request.cookies.get(ACCESS_TOKEN_COOKIE_NAME)
+    token = request.cookies.get(settings.ACCESS_TOKEN_COOKIE_NAME)
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

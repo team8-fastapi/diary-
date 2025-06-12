@@ -1,10 +1,7 @@
 # app/main.py
 from fastapi import FastAPI
-from app.api.v1.auth import auth_router
-
-# from app.api.v1.users import users_router # 다른 라우터도 추가 가능
+from app.api.v1.router import router as all_router
 
 app = FastAPI()
 
-app.include_router(auth_router)
-# app.include_router(users_router, prefix="/api/v1") # API 버전 접두사 추가
+app.include_router(all_router, prefix="/api/v1")

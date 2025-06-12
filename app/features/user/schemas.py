@@ -30,10 +30,5 @@ class UserResponse(BaseModel):
     updated_at: datetime = Field(..., example="2025-06-09T14:30:00Z")
 
 
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-
 class Config:
     from_attributes = True

@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30  # 액세스 토큰 만료 시간 (분)
 
+    ACCESS_TOKEN_COOKIE_NAME: str = "access_token"
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
