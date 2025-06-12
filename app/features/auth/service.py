@@ -3,7 +3,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
-from app.features.auth.repository import get_user_by_email, create_user
+from app.features.auth.repository import get_user_by_email
+from app.features.user.repository import create_user
 from app.features.auth.authentication import (
     verify_password,
     get_password_hash,
@@ -51,3 +52,4 @@ def logout_user(response: Response):
         path="/",
         domain="127.0.0.1",
     )
+    return {"message": "Logged out successfully"}

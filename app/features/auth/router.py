@@ -25,6 +25,7 @@ async def login(
     return login_user(response, form_data, db)
 
 
+# 로그아웃
 @auth_router.post("/logout", status_code=204)
 async def logout(response: Response):
     return logout_user(response)

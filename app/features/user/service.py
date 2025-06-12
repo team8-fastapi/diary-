@@ -2,7 +2,8 @@ from fastapi import HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.features.auth.repository import get_user_by_email, update_user, delete_user
+from app.features.auth.repository import get_user_by_email
+from app.features.user.repository import update_user, delete_user
 from app.features.user.schemas import UserResponse, UserUpdate
 
 
