@@ -1,5 +1,3 @@
-from sqlalchemy import select
-
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.features.auth.schemas import (
@@ -9,11 +7,11 @@ from app.features.auth.schemas import (
     TokenResponse,
 )
 from app.core.dependencies import get_db
-from app.features.user.models import User
-from app.features.auth.hashing import hash_password
-from app.features.auth.security import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.features.auth.service import authenticate_user
-
+from app.features.auth.Authentication import (
+    create_access_token,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+)
+from app.features.auth.service import authenticate_user, signup_user
 
 auth_router = APIRouter()
 
@@ -22,25 +20,11 @@ auth_router = APIRouter()
 async def signup(
     user_data: SignupRequest, db: AsyncSession = Depends(get_db)
 ) -> SignupResponse:
-    # 중복 이메일 확인
-    result = await db.execute(select(User).filter(User.email == user_data.email))
-    existing_user = result.scalars().first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    # 비밀번호 해시 처리 및 새로운 사용자 생성
-    new_user = User(
-        email=user_data.email,
-        password=hash_password(user_data.password),
-        name=user_data.name,
-        phone_number=user_data.phone_number,
-    )
-
-    # DB에 저장
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
-    return new_user
+    try:
+        user = await signup_user(db, user_data)
+        return user
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @auth_router.post("/login", response_model=TokenResponse)

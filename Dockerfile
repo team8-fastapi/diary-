@@ -1,6 +1,13 @@
 # 베이스 이미지
 FROM python:3.13-slim-bookworm
 
+# asyncmy를 위한 시스템 패키지 설치
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libmariadb-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install uv.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 

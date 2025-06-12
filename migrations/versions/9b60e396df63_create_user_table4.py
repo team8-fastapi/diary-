@@ -1,4 +1,4 @@
-"""create user table4
+"""create admin table4
 
 Revision ID: 9b60e396df63
 Revises: 188c77f79f89

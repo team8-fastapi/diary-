@@ -1,4 +1,4 @@
-"""create user table1
+"""create admin table1
 
 Revision ID: 9fe97285482f
 Revises: bc61de5d4810
