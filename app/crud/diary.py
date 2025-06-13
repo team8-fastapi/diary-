@@ -3,12 +3,15 @@ from app.models.user import Diary
 from app.schemas.diary import DiaryCreate, DiaryUpdate, MoodEnum
 from sqlalchemy import asc, desc
 
+
+# 다이어리 생성
 def create_diary(db: Session, diary_in: DiaryCreate, user_id: int) -> Diary:
     db_diary = Diary(**diary_in.dict(), user_id=user_id)
     db.add(db_diary)
     db.commit()
     db.refresh(db_diary)
     return db_diary
+
 
 def get_diary(db: Session, diary_id: int, user_id: int) -> Diary | None:
     return db.query(Diary).filter_by(diary_id=diary_id, user_id=user_id).first()
