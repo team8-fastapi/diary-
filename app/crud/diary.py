@@ -6,6 +6,7 @@ from app.models.user import (
 from app.schemas.diary import DiaryCreate, DiaryUpdate
 from typing import List, Optional
 from sqlalchemy import delete
+from app.crud import tags
 
 
 def create_diary(db: Session, diary: DiaryCreate, user_id: int) -> Diary:

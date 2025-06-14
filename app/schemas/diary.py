@@ -2,6 +2,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from app.schemas import tags
 
 
 # 일기 생성을 위한 스키마 (클라이언트 -> 서버)
