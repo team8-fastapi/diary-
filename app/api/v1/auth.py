@@ -58,7 +58,7 @@ async def login_for_access_token(
         samesite="Lax",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
-        domain="127.0.0.1",
+        domain=None,
         # secure=True # 프로덕션 환경에서 HTTPS를 사용한다면 이 줄의 주석을 해제하세요.
     )
 
@@ -115,7 +115,7 @@ async def delete_current_user(
         httponly=True,
         samesite="Lax",
         path="/",
-        domain="127.0.0.1",
+        domain=None,
         # secure=True # 프로덕션 환경에서 HTTPS를 사용한다면 이 줄의 주석을 해제하세요.
     )
     # Refresh Token도 사용한다면 여기서 삭제 로직 추가 (블랙리스트 포함)
@@ -138,7 +138,7 @@ async def logout(response: Response):  # Response 객체를 인자로 받음
         httponly=True,
         samesite="Lax",
         path="/",
-        domain="127.0.0.1",
+        domain=None,
         # secure=True # 프로덕션 환경에서 HTTPS를 사용한다면 이 줄의 주석을 해제하세요.
     )
     # 함수가 명시적으로 응답 본문을 반환하지 않으므로, FastAPI는 status_code=204에 맞춰 적절한 응답을 생성하고
