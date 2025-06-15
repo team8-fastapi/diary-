@@ -47,7 +47,6 @@ async def login_for_access_token(
     """
     일반 이메일/비밀번호 기반 로그인
     JWT access_token을 HTTP Only 쿠키로 설정합니다.
-    HTTP 환경이므로 secure=True는 제거됩니다.
     """
     user = get_user_by_email(db, email=form_data.username)
     if not user or not verify_password(form_data.password, user.password):
@@ -62,16 +61,15 @@ async def login_for_access_token(
         expires_delta=access_token_expires,
     )
 
-    # HTTP 환경용 쿠키 설정 (secure=True 제거)
     response.set_cookie(
         key=ACCESS_TOKEN_COOKIE_NAME,
         value=access_token,
         httponly=True,
-        # secure=True, # HTTP 환경에서는 이 줄을 제거하거나 False로 설정해야 합니다.
-        samesite="Lax",  # 권장되는 SameSite 설정
+        samesite="Lax",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
-        domain=None,  # 현재 호스트 도메인을 사용하도록 함
+        domain=None,
+        # secure=True # 프로덕션 환경에서 HTTPS를 사용한다면 이 줄의 주석을 해제하세요.
     )
 
     return {"message": "Logged in successfully"}
@@ -119,16 +117,14 @@ async def delete_current_user(
             detail="User not found or could not be deleted",
         )
 
-    # 계정 삭제 성공 후, 사용자 세션(쿠키)도 삭제
     response.delete_cookie(
         key=ACCESS_TOKEN_COOKIE_NAME,
         httponly=True,
-        # secure=True, # HTTP 환경에서는 이 줄을 제거하거나 False로 설정해야 합니다.
         samesite="Lax",
         path="/",
         domain=None,
+        # secure=True # 프로덕션 환경에서 HTTPS를 사용한다면 이 줄의 주석을 해제하세요.
     )
-    # Refresh Token도 사용한다면 여기서 삭제 로직 추가 (블랙리스트 포함)
     return {"message": "Deleted successfully"}
 
 
@@ -141,29 +137,38 @@ async def logout(response: Response):
     response.delete_cookie(
         key=ACCESS_TOKEN_COOKIE_NAME,
         httponly=True,
-        # secure=True, # HTTP 환경에서는 이 줄을 제거하거나 False로 설정해야 합니다.
         samesite="Lax",
         path="/",
         domain=None,
+        # secure=True # 프로덕션 환경에서 HTTPS를 사용한다면 이 줄의 주석을 해제하세요.
     )
     pass
 
 
-# Google 소셜 로그인 시작 엔드포인트
+# --- Google 소셜 로그인 시작 엔드포인트 ---
 @auth_router.get("/google/login")
 async def google_login(response: Response):
     """
     Google OAuth 2.0 로그인 흐름을 시작합니다.
     사용자를 Google 권한 부여 서버로 리디렉션합니다.
-    state 값은 URL 쿼리 파라미터로 전달됩니다.
+    state 값은 브라우저 쿠키에 저장됩니다.
     """
-    state = secrets.token_urlsafe(16)  # state 값 생성
+    state = secrets.token_urlsafe(16)
 
-    # 쿠키에 state를 저장하는 로직 제거 (현재는 URL 파라미터로 전달)
+    # state 값을 브라우저 쿠키에 저장 (CSRF 방지)
+    # HTTP 환경에서 SameSite=Lax는 동작해야 하지만, 특정 브라우저나 환경에서 제한이 있을 수 있습니다.
+    response.set_cookie(
+        key="oauth_state",
+        value=state,
+        httponly=True,
+        samesite="Lax",  # HTTP 환경에서 일반적으로 권장되는 설정
+        path="/",
+        domain=None,  # 브라우저가 현재 호스트 도메인을 사용하도록 함 (가장 유연)
+        # secure=True # 프로덕션 환경에서 HTTPS를 사용한다면 이 줄의 주석을 해제하세요.
+    )
+    print(f"DEBUG: Setting oauth_state cookie for Google with value: {state}")
 
     client_id = os.environ.get("GOOGLE_CLIENT_ID")
-    # Google Cloud Console에 등록된 redirect_uri와 일치해야 합니다.
-    # 현재는 HTTP 주소로 등록되어 있다고 가정합니다.
     redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI")
     scope = "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid"
 
@@ -178,11 +183,10 @@ async def google_login(response: Response):
     }
     auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(auth_url_params)}"
 
-    # 사용자를 Google 인증 서버로 리디렉션합니다.
     raise HTTPException(status_code=status.HTTP_302_FOUND, headers={"Location": auth_url})
 
 
-# Google 소셜 로그인 콜백 엔드포인트
+# --- Google 소셜 로그인 콜백 엔드포인트 ---
 @auth_router.get("/google/callback")
 async def google_callback(
         code: str,  # Google에서 전달하는 authorization code
@@ -194,22 +198,26 @@ async def google_callback(
     """
     Google OAuth 2.0 콜백 엔드포인트.
     authorization code를 받아 access_token으로 교환하고 사용자 정보를 처리합니다.
-    state 값은 URL 쿼리 파라미터에서 직접 검증됩니다.
-    JWT access_token을 HTTP Only 쿠키로 설정합니다.
-    HTTP 환경이므로 secure=True는 제거됩니다.
+    state 값은 브라우저 쿠키에서 검증됩니다.
     """
-    # 1. state 값 검증 (CSRF 방지) - URL 쿼리 파라미터로 직접 전달된 state 사용
-    if not state:
+    # 1. state 값 검증 (CSRF 방지) - 브라우저 쿠키에서 조회
+    stored_state = request.cookies.get("oauth_state")
+    print(f"DEBUG: Stored Google state from cookie: {stored_state}, Received state from URL: {state}")
+
+    if not stored_state or stored_state != state:
+        print("DEBUG: Invalid Google state parameter detected.")
+        if not stored_state:
+            print("DEBUG: 'oauth_state' cookie was not found for Google.")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing state parameter"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state parameter"
         )
-    print(f"DEBUG: Received state from URL: {state}")
+
+    response.delete_cookie(key="oauth_state", path="/")  # 사용한 state 쿠키 삭제
+    print(f"DEBUG: Google state '{state}' validated and cookie deleted.")
 
     # 2. authorization_code를 access_token으로 교환
     client_id = os.environ.get("GOOGLE_CLIENT_ID")
     client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
-    # Google Cloud Console에 등록된 redirect_uri와 일치해야 합니다.
-    # 현재는 HTTP 주소로 등록되어 있다고 가정합니다.
     redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI")
 
     token_url = "https://oauth2.googleapis.com/token"
@@ -224,12 +232,12 @@ async def google_callback(
     try:
         async with httpx.AsyncClient() as client:
             token_res = await client.post(token_url, data=token_params)
-            token_res.raise_for_status()  # HTTP 오류 발생 시 예외 발생
+            token_res.raise_for_status()
             token_data = token_res.json()
     except httpx.HTTPStatusError as e:
         print(f"Error getting token from Google: {e.response.text}")
         raise HTTPException(
-            status_code=e.response.status_code,  # Google에서 받은 실제 상태 코드를 반환
+            status_code=e.response.status_code,
             detail=f"Failed to exchange code for token: {e.response.text}"
         )
     except httpx.RequestError as e:
@@ -240,7 +248,6 @@ async def google_callback(
         )
 
     access_token = token_data.get("access_token")
-    # refresh_token = token_data.get("refresh_token") # 필요하다면 저장
 
     if not access_token:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -258,7 +265,7 @@ async def google_callback(
     except httpx.HTTPStatusError as e:
         print(f"Error getting user info from Google: {e.response.text}")
         raise HTTPException(
-            status_code=e.response.status_code,  # Google에서 받은 실제 상태 코드를 반환
+            status_code=e.response.status_code,
             detail=f"Failed to get user info from Google: {e.response.text}"
         )
     except httpx.RequestError as e:
@@ -269,8 +276,7 @@ async def google_callback(
         )
 
     user_email = user_profile.get("email")
-    user_name = user_profile.get("name", user_email)  # 이름이 없으면 이메일 사용
-    # profile_picture = user_profile.get("picture")
+    user_name = user_profile.get("name", user_email)
 
     if not user_email:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not retrieve user email from Google")
@@ -278,15 +284,15 @@ async def google_callback(
     # 4. 우리 서비스에 사용자 가입 또는 로그인 처리
     db_user = get_user_by_email(db, email=user_email)
     if not db_user:
-        # 새로운 사용자: 회원가입 (비밀번호는 임의로 생성하거나 소셜 유저임을 표시)
         new_user_data = {
             "email": user_email,
-            "password": get_password_hash(secrets.token_urlsafe(32)),  # 임의의 강력한 비밀번호
-            "name": user_profile.get("name", user_name)  # 'name' 필드
+            "name": user_name,
+            "password": get_password_hash(secrets.token_urlsafe(32)),
         }
-        db_user = create_user(db=db, user_data=new_user_data)
+        user_create_schema = UserCreate(**new_user_data)
+        db_user = create_user(db=db, user_in=user_create_schema)
 
-        # 5. 우리 서비스의 JWT 토큰 발급 및 쿠키 설정
+    # 5. 우리 서비스의 JWT 토큰 발급 및 쿠키 설정
     our_access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     our_access_token = create_access_token(
         data={"sub": db_user.email},
@@ -296,13 +302,181 @@ async def google_callback(
         key=ACCESS_TOKEN_COOKIE_NAME,
         value=our_access_token,
         httponly=True,
-        # secure=True, # HTTP 환경에서는 이 줄을 제거하거나 False로 설정해야 합니다.
-        samesite="Lax",  # 권장되는 SameSite 설정
+        samesite="Lax",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
-        domain=None,  # 현재 호스트 도메인을 사용하도록 함
+        domain=None,
     )
 
     # 6. 프론트엔드로 리디렉션 (로그인 성공 페이지 등)
-    frontend_redirect_url = os.environ.get("APP_FRONTEND_URL", "/")  # APP_FRONTEND_URL 환경변수 사용
+    frontend_redirect_url = os.environ.get("APP_FRONTEND_URL", "/")
     raise HTTPException(status_code=status.HTTP_302_FOUND, headers={"Location": frontend_redirect_url})
+
+
+# --- 네이버 소셜 로그인 시작 엔드포인트 ---
+@auth_router.get("/naver/login")
+async def naver_login(response: Response):  # response 객체 추가
+    """
+    Naver OAuth 2.0 로그인 흐름을 시작합니다.
+    사용자를 Naver 권한 부여 서버로 리디렉션합니다.
+    state 값은 브라우저 쿠키에 저장됩니다. (Google과 동일하게 쿠키 방식으로 통일)
+    """
+    state = secrets.token_urlsafe(16)  # state 값 생성
+
+    # state 값을 브라우저 쿠키에 저장 (CSRF 방지)
+    response.set_cookie(
+        key="oauth_state_naver",  # 네이버 전용 state 쿠키 이름 (Google과 구분)
+        value=state,
+        httponly=True,
+        samesite="Lax",
+        path="/",
+        domain=None,
+        # secure=True # 프로덕션 환경에서 HTTPS를 사용한다면 이 줄의 주석을 해제하세요.
+    )
+    print(f"DEBUG: Setting oauth_state_naver cookie with value: {state}")
+
+    client_id = os.environ.get("NAVER_CLIENT_ID")
+    redirect_uri = os.environ.get("NAVER_REDIRECT_URI")
+    scope = "profile,email"  # 네이버 스코프
+
+    auth_url_params = {
+        "response_type": "code",
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "state": state,  # state 값을 URL 파라미터로 전달
+        "scope": scope
+    }
+    auth_url = f"https://nid.naver.com/oauth2.0/authorize?{urlencode(auth_url_params)}"
+
+    raise HTTPException(status_code=status.HTTP_302_FOUND, headers={"Location": auth_url})
+
+
+# --- 네이버 소셜 로그인 콜백 엔드포인트 ---
+@auth_router.get("/naver/callback")
+async def naver_callback(
+        code: str,  # Naver에서 전달하는 authorization code
+        state: str,  # Naver에서 전달하는 state 값
+        response: Response,
+        request: Request,  # request 객체 추가
+        db: Session = Depends(get_db)
+):
+    """
+    Naver OAuth 2.0 콜백 엔드포인트.
+    authorization code를 받아 access_token으로 교환하고 사용자 정보를 처리합니다.
+    state 값은 브라우저 쿠키에서 검증됩니다.
+    """
+    # 1. state 값 검증 (CSRF 방지) - 브라우저 쿠키에서 조회
+    stored_state = request.cookies.get("oauth_state_naver")  # 네이버 전용 state 쿠키 이름 사용
+    print(f"DEBUG: Stored Naver state from cookie: {stored_state}, Received state from URL: {state}")
+
+    if not stored_state or stored_state != state:
+        print("DEBUG: Invalid Naver state parameter detected.")
+        if not stored_state:
+            print("DEBUG: 'oauth_state_naver' cookie was not found.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state parameter"
+        )
+
+    response.delete_cookie(key="oauth_state_naver", path="/")  # 사용한 state 쿠키 삭제
+    print(f"DEBUG: Naver state '{state}' validated and cookie deleted.")
+
+    # 2. authorization_code를 access_token으로 교환
+    client_id = os.environ.get("NAVER_CLIENT_ID")
+    client_secret = os.environ.get("NAVER_CLIENT_SECRET")
+    redirect_uri = os.environ.get("NAVER_REDIRECT_URI")
+
+    token_url = "https://nid.naver.com/oauth2.0/token"
+    token_params = {
+        "grant_type": "authorization_code",
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "code": code,
+        "state": state,
+        "redirect_uri": redirect_uri  # 네이버는 토큰 요청 시에도 redirect_uri가 필요합니다.
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            token_res = await client.post(token_url, data=token_params)
+            token_res.raise_for_status()
+            token_data = token_res.json()
+    except httpx.HTTPStatusError as e:
+        print(f"Error getting token from Naver: {e.response.text}")
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=f"Failed to exchange code for token: {e.response.text}"
+        )
+    except httpx.RequestError as e:
+        print(f"Network error during token exchange: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Network error during token exchange with Naver"
+        )
+
+    access_token = token_data.get("access_token")
+
+    if not access_token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Failed to get access token from Naver response")
+
+    # 3. access_token으로 사용자 프로필 정보 요청
+    userinfo_url = "https://openapi.naver.com/v1/nid/me"
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    try:
+        async with httpx.AsyncClient() as client:
+            userinfo_res = await client.get(userinfo_url, headers=headers)
+            userinfo_res.raise_for_status()
+            user_profile = userinfo_res.json()
+    except httpx.HTTPStatusError as e:
+        print(f"Error getting user info from Naver: {e.response.text}")
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=f"Failed to get user info from Naver: {e.response.text}"
+        )
+    except httpx.RequestError as e:
+        print(f"Network error during user info request: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Network error during user info request with Naver"
+        )
+
+    # 네이버 사용자 프로필에서 이메일과 이름 추출
+    naver_response = user_profile.get("response", {})
+    user_email = naver_response.get("email")
+    user_name = naver_response.get("name", user_email)
+
+    if not user_email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not retrieve user email from Naver")
+
+    # 4. 우리 서비스에 사용자 가입 또는 로그인 처리
+    db_user = get_user_by_email(db, email=user_email)
+    if not db_user:
+        new_user_data = {
+            "email": user_email,
+            "name": user_name,
+            "password": get_password_hash(secrets.token_urlsafe(32)),
+        }
+        user_create_schema = UserCreate(**new_user_data)
+        db_user = create_user(db=db, user_in=user_create_schema)
+
+    # 5. 우리 서비스의 JWT 토큰 발급 및 쿠키 설정
+    our_access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    our_access_token = create_access_token(
+        data={"sub": db_user.email},
+        expires_delta=our_access_token_expires,
+    )
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE_NAME,
+        value=our_access_token,
+        httponly=True,
+        samesite="Lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+        domain=None,
+    )
+
+    # 6. 프론트엔드로 리디렉션 (로그인 성공 페이지 등)
+    frontend_redirect_url = os.environ.get("APP_FRONTEND_URL", "/")
+    raise HTTPException(status_code=status.HTTP_302_FOUND, headers={"Location": frontend_redirect_url})
+

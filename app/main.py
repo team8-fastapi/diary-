@@ -21,7 +21,7 @@ origins = [
     "http://localhost:3000",  # React/Vue/Angular 개발 서버 주소 (예시)
     "http://127.0.0.1",  # 로컬호스트 IP (FastAPI 서버가 실행되는 주소)
     "http://127.0.0.1:8000",  # FastAPI 서버 주소
-    # "https://your-frontend-domain.com", # 배포 시 프론트엔드 도메인 추가
+    #"https://your-frontend-domain.com", # 배포 시 프론트엔드 도메인 추가
 ]
 
 app.add_middleware(
