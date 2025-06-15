@@ -16,7 +16,7 @@ if config.config_file_name is not None:
 # --- 환경변수에서 DB URL 동적으로 주입 ---
 MYSQL_USER = os.environ.get("MYSQL_USER", "root")
 MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "rootpassword")
-MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
+MYSQL_HOST = os.environ.get("MYSQL_HOST", "db")
 MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
 MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "mydatabase")
 
