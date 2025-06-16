@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>새 일기 작성</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f9f9f9;
+      margin: 0; padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #555;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      resize: vertical;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .btn-back {
+      display: inline-block;
+      margin-top: 10px;
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>새 일기 작성</h1>
+    <label for="title">제목</label>
+    <input type="text" id="title" placeholder="제목을 입력하세요" />
+
+    <label for="content">내용</label>
+    <textarea id="content" rows="8" placeholder="일기 내용을 입력하세요"></textarea>
+
+    <button onclick="createDiary()">작성 완료</button>
+    <div style="text-align:center;">
+      <span class="btn-back" onclick="location.href='/diaries/list'">목록으로 돌아가기</span>
+    </div>
+  </div>
+
+  <script>
+    async function createDiary() {
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
+
+      if (!title || !content) {
+        alert('제목과 내용을 모두 입력해주세요.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/diaries/create', { // API 주소에 맞게 수정
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content })
+        });
+
+        if (!res.ok) throw new Error('일기 작성에 실패했습니다.');
+
+        alert('일기가 성공적으로 작성되었습니다!');
+        location.href = '/diaries/list';
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+  </script>
+</body>
+</html>

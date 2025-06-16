@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>메인 페이지</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #e9eff3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+    .container {
+      background: white;
+      padding: 40px 50px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+    }
+    h1 {
+      color: #007bff;
+      margin-bottom: 15px;
+      font-size: 32px;
+    }
+    p {
+      font-size: 18px;
+      margin-bottom: 30px;
+      color: #555;
+    }
+    .links a {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 20px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    .links a:hover {
+      background-color: #0056b3;
+    }
+    .links a.logout {
+      background-color: #dc3545;
+    }
+    .links a.create-diary {
+        background-color: #28a745; /* 초록색 계열로 구분 */
+    }
+    .links a.logout:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>환영합니다!</h1>
+    <p>우리 서비스에 오신 것을 환영해요!</p>
+
+    <div class="links">
+      <a href="/diaries/create" class="create-diary">새 일기 쓰기</a>
+      <!-- 네 정보 페이지 경로에 맞게 수정 -->
+      <a href="/auth/me-page">내 정보 보기</a>
+      <!-- 일기 목록 페이지 경로에 맞게 수정 -->
+      <a href="/diaries/list">일기 목록</a>
+      <!-- 로그아웃 페이지 경로에 맞게 수정 -->
+      <a href="/auth/logout" class="logout">로그아웃</a>
+    </div>
+  </div>
+</body>
+</html>

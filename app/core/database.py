@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 # 환경변수에서 DB 정보 읽기
 MYSQL_USER = os.environ.get("MYSQL_USER", "root")
-MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "rootpassword")
+MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "103117")
 MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
 MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
 MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "mydatabase")

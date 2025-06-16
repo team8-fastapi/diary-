@@ -39,7 +39,7 @@ class Diary(Base, TimestampMixin):
     content = Column(Text)
     emotion_summary = Column(Text)
     mood = Column(
-        Enum("기쁨", "슬픔", "분노", "피곤", "짜증", "무난", name="mood_enum")
+        Enum("","기쁨", "슬픔", "분노", "피곤", "짜증", "무난", name="mood_enum")
     )
 
 

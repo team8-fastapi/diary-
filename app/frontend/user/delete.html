@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원 탈퇴</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f8d7da;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      border: 2px solid #dc3545;
+    }
+    h1 {
+      margin-bottom: 25px;
+      color: #721c24;
+    }
+    p {
+      margin-bottom: 20px;
+      font-size: 16px;
+      color: #721c24;
+    }
+    button {
+      padding: 12px 20px;
+      background-color: #dc3545;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #a71d2a;
+    }
+    .btn-back {
+      margin-top: 15px;
+      display: inline-block;
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>회원 탈퇴</h1>
+    <p>정말로 회원 탈퇴를 진행하시겠습니까?<br>이 작업은 되돌릴 수 없습니다.</p>
+    <button onclick="deleteAccount()">탈퇴하기</button>
+    <div>
+      <span class="btn-back" onclick="location.href='/'">메인으로 돌아가기</span>
+    </div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    async function deleteAccount() {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = '';
+
+      try {
+        const res = await fetch('/auth/me', {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          messageDiv.textContent = data.detail || '회원 탈퇴에 실패했습니다.';
+          return;
+        }
+
+        messageDiv.textContent = '회원 탈퇴가 완료되었습니다. 메인 페이지로 이동합니다.';
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+      } catch (err) {
+        messageDiv.textContent = '서버와 통신 중 오류가 발생했습니다.';
+      }
+    }
+  </script>
+</body>
+</html>
+

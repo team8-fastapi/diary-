@@ -11,9 +11,10 @@ class MoodEnum(str, Enum):
     무난 = "무난"
 
 class DiaryBase(BaseModel):
+
     content: str
-    emotion_summary: str
-    mood: MoodEnum
+    emotion_summary: str = ""
+    mood: MoodEnum = "기쁨"
 
 class DiaryCreate(DiaryBase):
     pass
@@ -22,6 +23,7 @@ class DiaryUpdate(BaseModel):
     content: str | None = None
     emotion_summary: str | None = None
     mood: MoodEnum | None = None
+    title: str | None = None
 
 class DiaryOut(DiaryBase):
     diary_id: int

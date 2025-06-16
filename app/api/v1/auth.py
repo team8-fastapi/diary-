@@ -84,7 +84,7 @@ async def update_current_user(
     return updated_user
 
 
-@auth_router.delete("/me")  # status_code=status.HTTP_204_NO_CONTENT 제거
+@auth_router.delete("/delete")  # status_code=status.HTTP_204_NO_CONTENT 제거
 async def delete_current_user(
     response: Response,  # 응답 쿠키 삭제를 위해 Response 객체 주입
     current_user: UserResponse = Depends(get_current_user),  # 현재 로그인된 사용자 확인

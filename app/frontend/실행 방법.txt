@@ -1,4 +1,0 @@
-cd myapp
-npm install axios react-router-dom
-# 파일 교체 후
-npm run dev

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>일기 리스트</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f9f9f9;
+      margin: 0; padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .diary-list {
+      max-width: 600px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    .diary-item {
+      border-bottom: 1px solid #eee;
+      padding: 15px 0;
+    }
+    .diary-item:last-child {
+      border-bottom: none;
+    }
+    .diary-title {
+      font-weight: 700;
+      font-size: 18px;
+      color: #007bff;
+      cursor: pointer;
+      margin: 0 0 5px 0;
+    }
+    .diary-date {
+      font-size: 14px;
+      color: #888;
+    }
+    .diary-content {
+      margin-top: 8px;
+      color: #555;
+      white-space: pre-wrap;
+    }
+    .btn-add {
+      display: block;
+      width: 120px;
+      margin: 20px auto;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      text-align: center;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+    .btn-add:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>내 일기 목록</h1>
+  <a href="/diaries/create" class="btn-add">새 일기 쓰기</a>
+
+  <div class="diary-list" id="diaryList">
+    <!-- 일기 항목들이 여기서 동적으로 렌더링됨 -->
+  </div>
+
+  <script>
+    async function fetchDiaries() {
+      try {
+        const res = await fetch('/api/diaries/list'); // API 주소에 맞게 수정
+        if (!res.ok) throw new Error('일기 목록을 불러오는데 실패했습니다.');
+        const diaries = await res.json();
+
+        const container = document.getElementById('diaryList');
+        container.innerHTML = '';
+
+        if (diaries.length === 0) {
+          container.innerHTML = '<p>작성된 일기가 없습니다.</p>';
+          return;
+        }
+
+        diaries.forEach(diary => {
+          const div = document.createElement('div');
+          div.className = 'diary-item';
+
+          div.innerHTML = `
+            <h2 class="diary-title" onclick="location.href='/diaries/update?id=${diary.diary_id}'">${diary.title || '2025-06-16'}</h2>
+            <div class="diary-date">${new Date(diary.created_at).toLocaleDateString()}</div>
+            <p class="diary-content">${diary.content ? diary.content.substring(0, 100) + '...' : ''}</p>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        document.getElementById('diaryList').innerHTML = `<p style="color:red;">${err.message}</p>`;
+      }
+    }
+
+    fetchDiaries();
+  </script>
+</body>
+</html>
